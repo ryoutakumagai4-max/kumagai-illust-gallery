@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイイラストギャラリー</title>
+    <!-- Tailwind CSS読み込み -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- ヘッダー -->
+    <header class="py-8 px-4 text-center">
+        <h1 class="text-3xl font-bold tracking-wider">My Illustration Gallery</h1>
+        <p class="text-slate-400 text-sm mt-2">描いた絵を流し見できる場所</p>
+    </header>
+
+    <!-- ギャラリー本体 -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 pb-16">
+        <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- 画像が自動でここに読み込まれます -->
+            <p id="loading" class="col-span-full text-center text-slate-400 py-12">画像を読み込んでいます...</p>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="py-6 text-center text-xs text-slate-500">
+        <p>&copy; 2026 My Gallery</p>
+    </footer>
+
+    <!-- 画像自動取得スクリプト -->
+    <script>
+        async function loadImages() {
+            const gallery = document.getElementById('gallery');
+            const loading = document.getElementById('loading');
+
+            // GitHubのURLからオーナー名とリポジトリ名を自動判別
+            const hostname = window.location.hostname; // e.g. username.github.io
+            const pathname = window.location.pathname; // e.g. /reponame/
+            
+            if (!hostname.includes('github.io')) {
+                loading.textContent = 'GitHub Pagesで公開すると画像が自動表示されます。';
+                return;
+            }
+
+            const owner = hostname.split('.')[0];
+            const repo = pathname.split('/')[1];
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/images`;
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('imagesフォルダが見つかりません');
+                
+                const files = await response.json();
+                // 画像ファイルのみを抽出
+                const imageFiles = files.filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file.name));
+
+                if (imageFiles.length === 0) {
+                    loading.textContent = '「images」フォルダにまだ画像がありません。';
+                    return;
+                }
+
+                loading.remove();
+
+                // 新しい順（またはファイル名順）に並べ替え
+                imageFiles.reverse().forEach(file => {
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700/50 hover:border-slate-500 transition";
+                    
+                    card.innerHTML = `
+                        <a href="${file.download_url}" target="_blank">
+                            <img src="${file.download_url}" alt="${file.name}" class="w-full h-auto object-cover hover:scale-105 transition duration-300">
+                        </a>
+                    `;
+                    gallery.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error(error);
+                loading.textContent = '「images」フォルダがまだ作成されていないか、読み込みに失敗しました。';
+            }
+        }
+
+        loadImages();
+    </script>
+</body>
+</html>
