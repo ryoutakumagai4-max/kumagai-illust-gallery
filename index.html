@@ -63,7 +63,7 @@
                 loading.remove();
 
                 // 新しい順（またはファイル名順）に並べ替え
-                imageFiles.reverse().forEach(file => {
+                imageFiles.forEach(file => {
                     const card = document.createElement('div');
                     card.className = "bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700/50 hover:border-slate-500 transition";
                     
